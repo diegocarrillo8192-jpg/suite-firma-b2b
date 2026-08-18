@@ -88,4 +88,53 @@ input[type="color"]::-moz-color-swatch {
   animation: fade-up 0.35s ease-out both;
 }
 
+/* Splash screen: entrada, pulso y palabra */
+@keyframes splash-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.86) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes splash-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 0 rgba(99, 102, 241, 0.45),
+      0 18px 50px rgba(30, 27, 75, 0.55);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow:
+      0 0 0 16px rgba(99, 102, 241, 0.08),
+      0 18px 70px rgba(79, 70, 229, 0.5);
+    transform: scale(1.05);
+  }
+}
+
+.splash-logo {
+  animation:
+    splash-pop 0.6s cubic-bezier(0.22, 1, 0.36, 1) both,
+    splash-pulse 1.6s ease-in-out 0.6s infinite;
+}
+
+@keyframes splash-word {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.splash-word {
+  animation: splash-word 0.5s ease-out 0.35s both;
+}
+
 

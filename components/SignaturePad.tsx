@@ -153,6 +153,7 @@ export default function SignaturePad() {
 
   const onPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
     if (!drawingRef.current || !currentRef.current) return;
+    e.preventDefault();
     const native = e.nativeEvent;
     const coalesced = native.getCoalescedEvents?.() ?? [];
     const events = coalesced.length > 0 ? coalesced : [native];
@@ -178,6 +179,20 @@ export default function SignaturePad() {
     lastRef.current = null;
     repaintBase();
     paintOverlay();
+  };
+
+  const onPointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    endStroke();
+  };
+
+  const onPointerLeave = (e: React.PointerEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    if (!drawingRef.current) return;
+    // Con pointer capture activa seguimos recibiendo eventos aunque el puntero
+    // salga del lienzo (trazo continuo, sin saltos). Si la captura falló,
+    // cerramos el trazo para no dejarlo colgado.
+    if (!e.currentTarget.hasPointerCapture(e.pointerId)) endStroke();
   };
 
   const clearAll = () => {
@@ -249,11 +264,12 @@ export default function SignaturePad() {
           <canvas
             ref={canvasRef}
             className="block h-[240px] w-full cursor-crosshair touch-none select-none rounded-xl bg-slate-950/70 ring-1 ring-white/10 sm:h-[280px]"
+            style={{ touchAction: "none" }}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
-            onPointerUp={endStroke}
-            onPointerCancel={endStroke}
-            onPointerLeave={endStroke}
+            onPointerUp={onPointerUp}
+            onPointerCancel={onPointerUp}
+            onPointerLeave={onPointerLeave}
           />
         </div>
 
