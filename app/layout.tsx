@@ -13,20 +13,16 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL ??
-  (process.env.NEXT_PUBLIC_VERCEL_URL
-    ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-    : "https://suite-firma-b2b.vercel.app");
+const siteUrl = "https://suite-firma-b2b.vercel.app";
 
 const SITE_TITLE = "Suite Firma B2B — Generador de Firmas y Extractores";
 const SITE_DESCRIPTION =
   "Generador de firmas de correo HTML, lienzo de firma digital táctil y extractor de foto a PNG transparente. Suite Firma B2B, procesamiento 100% local en tu navegador.";
 
-const OG_IMAGE_URL = `${SITE_URL}/og.png`;
+const OG_IMAGE_URL = `${siteUrl}/og.png`;
 
 export const metadata: Metadata = {
-  metadataBase: new URL(SITE_URL),
+  metadataBase: new URL(siteUrl),
   title: SITE_TITLE,
   description: SITE_DESCRIPTION,
   applicationName: "Suite Firma B2B",
