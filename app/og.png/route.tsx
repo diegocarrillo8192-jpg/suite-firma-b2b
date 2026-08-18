@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "nodejs";
+export const dynamic = "force-static";
 
 const Swoosh = (
   <svg viewBox="0 0 120 120" width={92} height={92}>
