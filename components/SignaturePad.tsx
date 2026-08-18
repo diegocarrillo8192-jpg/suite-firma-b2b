@@ -26,7 +26,6 @@ const EXPORT_SCALE = 3;
 export default function SignaturePad() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const wrapRef = useRef<HTMLDivElement>(null);
-  const baseRef = useRef<HTMLCanvasElement | null>(null);
   const strokesRef = useRef<Stroke[]>([]);
   const currentRef = useRef<Stroke | null>(null);
   const lastRef = useRef<[number, number] | null>(null);
@@ -85,16 +84,7 @@ export default function SignaturePad() {
     ctx.fillText("Firma aquí con el mouse o el dedo ✍", (w / 2) * RENDER_SCALE, (h / 2) * RENDER_SCALE);
   }, []);
 
-  const repaintBase = useCallback(() => {
-    const canvas = baseRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    for (const stroke of strokesRef.current) paintStroke(ctx, stroke, RENDER_SCALE);
-  }, [paintStroke]);
-
-  const paintOverlay = useCallback(() => {
+  const repaint = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext("2d");
@@ -103,6 +93,7 @@ export default function SignaturePad() {
     if (strokesRef.current.length === 0 && !currentRef.current) {
       drawPlaceholder(ctx);
     }
+    for (const stroke of strokesRef.current) paintStroke(ctx, stroke, RENDER_SCALE);
     if (currentRef.current) paintStroke(ctx, currentRef.current, RENDER_SCALE);
   }, [drawPlaceholder, paintStroke]);
 
@@ -117,12 +108,8 @@ export default function SignaturePad() {
     sizeRef.current = { w, h };
     canvas.width = w * RENDER_SCALE;
     canvas.height = h * RENDER_SCALE;
-    baseRef.current = document.createElement("canvas");
-    baseRef.current.width = w * RENDER_SCALE;
-    baseRef.current.height = h * RENDER_SCALE;
-    repaintBase();
-    paintOverlay();
-  }, [paintOverlay, repaintBase]);
+    repaint();
+  }, [repaint]);
 
   useEffect(() => {
     resize();
@@ -148,7 +135,7 @@ export default function SignaturePad() {
     const pos = getPos(e.nativeEvent);
     currentRef.current = { color, width, points: [pos] };
     lastRef.current = pos;
-    paintOverlay();
+    repaint();
   };
 
   const onPointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
@@ -165,7 +152,7 @@ export default function SignaturePad() {
       currentRef.current.points.push(pos);
       lastRef.current = pos;
     }
-    paintOverlay();
+    repaint();
   };
 
   const endStroke = () => {
@@ -177,8 +164,10 @@ export default function SignaturePad() {
     }
     currentRef.current = null;
     lastRef.current = null;
-    repaintBase();
-    paintOverlay();
+    // No se limpia nada: el trazo queda guardado en strokesRef y se
+    // repinta desde la referencia, por lo que permanece visible hasta
+    // que el usuario presione 'Limpiar' o 'Deshacer'.
+    repaint();
   };
 
   const onPointerUp = (e: React.PointerEvent<HTMLCanvasElement>) => {
@@ -200,15 +189,13 @@ export default function SignaturePad() {
     currentRef.current = null;
     lastRef.current = null;
     setHasInk(false);
-    repaintBase();
-    paintOverlay();
+    repaint();
   };
 
   const undo = () => {
     strokesRef.current.pop();
     setHasInk(strokesRef.current.length > 0);
-    repaintBase();
-    paintOverlay();
+    repaint();
   };
 
   const download = () => {
