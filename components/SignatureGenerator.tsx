@@ -139,7 +139,7 @@ export default function SignatureGenerator() {
                 icon={User}
                 value={data.nombre}
                 onChange={(v) => setField("nombre", v)}
-                placeholder="Nombre completo"
+                placeholder="Ej. Juan Pérez"
               />
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <Field
@@ -147,14 +147,14 @@ export default function SignatureGenerator() {
                   icon={Briefcase}
                   value={data.cargo}
                   onChange={(v) => setField("cargo", v)}
-                  placeholder="Puesto"
+                  placeholder="Ej. Gerente General"
                 />
                 <Field
                   label="Empresa"
                   icon={Building2}
                   value={data.empresa}
                   onChange={(v) => setField("empresa", v)}
-                  placeholder="Empresa"
+                  placeholder="Ej. Mi Empresa S.A."
                 />
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -163,7 +163,7 @@ export default function SignatureGenerator() {
                   icon={Phone}
                   value={data.telefono}
                   onChange={(v) => setField("telefono", v)}
-                  placeholder="Teléfono"
+                  placeholder="Ej. +507 6000-0000"
                 />
                 <Field
                   label="Correo"
@@ -171,7 +171,7 @@ export default function SignatureGenerator() {
                   type="email"
                   value={data.email}
                   onChange={(v) => setField("email", v)}
-                  placeholder="Correo"
+                  placeholder="Ej. usuario@empresa.com"
                 />
               </div>
               <Field
@@ -179,7 +179,7 @@ export default function SignatureGenerator() {
                 icon={Globe}
                 value={data.web}
                 onChange={(v) => setField("web", v)}
-                placeholder="Sitio web"
+                placeholder="Ej. www.empresa.com"
               />
               <div>
                 <span className="mb-1.5 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wider text-slate-400">

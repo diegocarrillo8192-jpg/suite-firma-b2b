@@ -16,14 +16,14 @@ export interface SignatureData {
 }
 
 export const defaultData: SignatureData = {
-  nombre: "María Fernanda Torres",
-  cargo: "Ejecutiva de Cuentas B2B",
-  empresa: "Nexora Solutions",
-  telefono: "+52 55 1234 5678",
-  email: "maria.torres@nexora.mx",
-  web: "www.nexora.mx",
+  nombre: "",
+  cargo: "",
+  empresa: "",
+  telefono: "",
+  email: "",
+  web: "",
   fotoUrl: "",
-  linkedin: "linkedin.com/in/mftorres",
+  linkedin: "",
   instagram: "",
   facebook: "",
   twitter: "",
@@ -71,6 +71,17 @@ const esc = (s: string) =>
     .replace(/"/g, "&quot;");
 
 const trim = (s: string) => s.trim();
+
+/** Valores neutros para que la plantilla siempre se vea completa. */
+export const fallbackData = (data: SignatureData): SignatureData => ({
+  ...data,
+  nombre: trim(data.nombre) || "Tu Nombre y Apellido",
+  cargo: trim(data.cargo) || "Puesto / Cargo",
+  empresa: trim(data.empresa) || "Nombre de Empresa",
+  telefono: trim(data.telefono) || "+507 0000-0000",
+  email: trim(data.email) || "correo@empresa.com",
+  web: trim(data.web) || "www.empresa.com",
+});
 
 const withScheme = (u: string) => {
   const t = trim(u);
@@ -366,20 +377,21 @@ export function buildSignatureHTML(
   accentColor: string,
 ): string {
   const accent = safeAccent(accentColor);
+  const d = fallbackData(data);
 
   let body: string;
   switch (templateId) {
     case "script":
-      body = buildScript(data, avatarSrc, accent);
+      body = buildScript(d, avatarSrc, accent);
       break;
     case "clasica":
-      body = buildClasica(data, avatarSrc, accent);
+      body = buildClasica(d, avatarSrc, accent);
       break;
     case "corporativa":
-      body = buildCorporativa(data, avatarSrc, accent);
+      body = buildCorporativa(d, avatarSrc, accent);
       break;
     default:
-      body = buildEjecutivo(data, avatarSrc, accent);
+      body = buildEjecutivo(d, avatarSrc, accent);
   }
 
   return sanitizeSignatureHTML(rootTable(body).trim());
