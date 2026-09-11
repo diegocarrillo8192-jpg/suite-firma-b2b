@@ -50,6 +50,24 @@ function hexToRgb(hex: string): [number, number, number] {
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
 
+export function readFileAsDataURL(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = () => reject(new Error("Lectura fallida"));
+    reader.readAsDataURL(file);
+  });
+}
+
+export function loadImageFromSrc(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Carga fallida"));
+    img.src = src;
+  });
+}
+
 export function extractInkToCanvas(
   img: HTMLImageElement,
   opts: ExtractOptions,

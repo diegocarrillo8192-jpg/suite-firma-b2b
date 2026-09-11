@@ -1,27 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  Check,
-  Download,
-  Eraser,
-  MousePointerClick,
-  Palette,
-  PenLine,
-  Trash2,
-  Undo2,
-} from "lucide-react";
+import { MousePointerClick, PenLine } from "lucide-react";
 import GlassCard from "@/components/ui/GlassCard";
-
-interface Stroke {
-  color: string;
-  width: number;
-  points: Array<[number, number]>;
-}
-
-const INK_COLORS = ["#0f172a", "#1e293b", "#4f46e5", "#2563eb", "#b91c1c", "#ffffff"];
-const RENDER_SCALE = 2;
-const EXPORT_SCALE = 3;
+import {
+  EXPORT_SCALE,
+  INK_COLORS,
+  RENDER_SCALE,
+  drawPlaceholder,
+  paintStroke,
+  type Stroke,
+} from "@/lib/signature-drawing";
+import PadToolbar from "@/components/signature-pad/PadToolbar";
+import PadTips from "@/components/signature-pad/PadTips";
 
 export default function SignaturePad() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -37,53 +28,6 @@ export default function SignaturePad() {
   const [hasInk, setHasInk] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  const paintStroke = useCallback(
-    (ctx: CanvasRenderingContext2D, stroke: Stroke, scale: number) => {
-      const pts = stroke.points;
-      if (!pts.length) return;
-      ctx.strokeStyle = stroke.color;
-      ctx.lineWidth = stroke.width * scale;
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-      ctx.beginPath();
-      ctx.moveTo(pts[0][0] * scale, pts[0][1] * scale);
-      if (pts.length === 1) {
-        ctx.lineTo(pts[0][0] * scale + 0.01, pts[0][1] * scale);
-      } else {
-        for (let i = 1; i < pts.length - 1; i++) {
-          const mx = (pts[i][0] + pts[i + 1][0]) / 2;
-          const my = (pts[i][1] + pts[i + 1][1]) / 2;
-          ctx.quadraticCurveTo(
-            pts[i][0] * scale,
-            pts[i][1] * scale,
-            mx * scale,
-            my * scale,
-          );
-        }
-        const last = pts[pts.length - 1];
-        ctx.lineTo(last[0] * scale, last[1] * scale);
-      }
-      ctx.stroke();
-    },
-    [],
-  );
-
-  const drawPlaceholder = useCallback((ctx: CanvasRenderingContext2D) => {
-    const { w, h } = sizeRef.current;
-    ctx.setLineDash([6, 6]);
-    ctx.strokeStyle = "rgba(148,163,184,0.45)";
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(24 * RENDER_SCALE, (h - 60) * RENDER_SCALE);
-    ctx.lineTo((w - 24) * RENDER_SCALE, (h - 60) * RENDER_SCALE);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = "rgba(148,163,184,0.55)";
-    ctx.font = `${13 * RENDER_SCALE}px var(--font-geist-sans), ui-sans-serif, sans-serif`;
-    ctx.textAlign = "center";
-    ctx.fillText("Firma aquí con el mouse o el dedo ✍", (w / 2) * RENDER_SCALE, (h / 2) * RENDER_SCALE);
-  }, []);
-
   const repaint = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -91,11 +35,11 @@ export default function SignaturePad() {
     if (!ctx) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     if (strokesRef.current.length === 0 && !currentRef.current) {
-      drawPlaceholder(ctx);
+      drawPlaceholder(ctx, sizeRef.current.w, sizeRef.current.h);
     }
     for (const stroke of strokesRef.current) paintStroke(ctx, stroke, RENDER_SCALE);
     if (currentRef.current) paintStroke(ctx, currentRef.current, RENDER_SCALE);
-  }, [drawPlaceholder, paintStroke]);
+  }, []);
 
   const resize = useCallback(() => {
     const canvas = canvasRef.current;
@@ -202,7 +146,10 @@ export default function SignaturePad() {
     const strokes = strokesRef.current;
     if (!strokes.length) return;
 
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    let minX = Infinity,
+      minY = Infinity,
+      maxX = -Infinity,
+      maxY = -Infinity;
     for (const s of strokes) {
       for (const [x, y] of s.points) {
         minX = Math.min(minX, x);
@@ -260,99 +207,20 @@ export default function SignaturePad() {
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 border-t border-white/10 bg-slate-950/60 px-4 py-4 sm:gap-4 sm:px-5">
-          <div className="flex items-center gap-2">
-            <Palette size={14} className="hidden text-slate-400 sm:block" />
-            <div className="flex items-center gap-1.5">
-              {INK_COLORS.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  aria-label={`Color ${c}`}
-                  onClick={() => setColor(c)}
-                  className={`h-6 w-6 rounded-full border transition-transform hover:scale-110 ${
-                    color === c ? "border-white ring-2 ring-indigo-400" : "border-white/20"
-                  }`}
-                  style={{ backgroundColor: c }}
-                />
-              ))}
-              <label className="relative h-6 w-6 cursor-pointer overflow-hidden rounded-full border border-dashed border-white/30">
-                <input
-                  type="color"
-                  value={color}
-                  onChange={(e) => setColor(e.target.value)}
-                  className="absolute -inset-2 h-10 w-10"
-                  aria-label="Color personalizado"
-                />
-              </label>
-            </div>
-          </div>
-
-          <div className="flex min-w-[140px] flex-1 items-center gap-2 sm:min-w-[180px] sm:flex-none">
-            <PenLine size={14} className="shrink-0 text-slate-400" />
-            <input
-              type="range"
-              min={1}
-              max={14}
-              value={width}
-              onChange={(e) => setWidth(Number(e.target.value))}
-              className="w-full"
-              aria-label="Grosor de línea"
-            />
-            <span
-              className="shrink-0 rounded-full"
-              style={{
-                width: width,
-                height: width,
-                minWidth: 2,
-                minHeight: 2,
-                backgroundColor: color,
-              }}
-            />
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={undo}
-              disabled={!hasInk}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-white/10 bg-white/5 px-3 py-2 text-xs font-medium text-slate-300 transition hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <Undo2 size={14} /> Deshacer
-            </button>
-            <button
-              type="button"
-              onClick={clearAll}
-              disabled={!hasInk}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-rose-500/30 bg-rose-500/10 px-3 py-2 text-xs font-medium text-rose-300 transition hover:bg-rose-500/20 disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              <Trash2 size={14} /> Limpiar
-            </button>
-            <button
-              type="button"
-              onClick={download}
-              disabled={!hasInk}
-              className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-600 to-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-900/40 transition hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
-            >
-              {saved ? <Check size={16} strokeWidth={2.5} /> : <Download size={16} />}
-              <span className="sm:hidden">PNG HD</span>
-              <span className="hidden sm:inline">Descargar PNG Transparente HD</span>
-            </button>
-          </div>
-        </div>
+        <PadToolbar
+          color={color}
+          width={width}
+          hasInk={hasInk}
+          saved={saved}
+          onColorChange={setColor}
+          onWidthChange={setWidth}
+          onUndo={undo}
+          onClear={clearAll}
+          onDownload={download}
+        />
       </GlassCard>
 
-      <GlassCard className="flex items-start gap-3 p-5">
-        <Eraser size={18} className="mt-0.5 shrink-0 text-indigo-400" />
-        <div className="text-sm leading-relaxed text-slate-400">
-          <span className="font-semibold text-slate-200">Consejos:</span> la firma se exporta{" "}
-          <span className="text-slate-200">recortada y sin fondo</span> (transparencia real) a 3× de
-          resolución, ideal para insertar en documentos, PDFs o tu firma de correo. El lienzo usa
-          trazado suavizado y eventos coalescidos para que el trazo con el dedo sea fluido y
-          preciso en cualquier pantalla. Usa <span className="text-slate-200">blanco</span> para
-          firmar sobre fondos oscuros.
-        </div>
-      </GlassCard>
+      <PadTips />
     </div>
   );
 }
