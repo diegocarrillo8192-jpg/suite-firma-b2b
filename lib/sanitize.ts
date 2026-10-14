@@ -15,6 +15,7 @@ const CONFIG = {
     "link",
     "base",
     "math",
+    "style",
   ],
   FORBID_ATTR: [
     "onerror",
@@ -28,11 +29,14 @@ const CONFIG = {
     "srcdoc",
     "formaction",
   ],
+  // DOMPurify elimina `target` por defecto; lo necesitamos para que los
+  // enlaces de la firma se abran en una pestaña nueva.
+  ADD_ATTR: ["target"],
 };
 
 /**
  * Sanitiza el HTML generado de la firma antes de renderizarlo o copiarlo.
- * Permite tablas, estilos inline y SVG (necesarios para clientes de correo),
+ * Permite tablas y estilos inline (necesarios para clientes de correo),
  * pero elimina scripts, iframes, eventos y formularios.
  * En SSR (sin `window`) se devuelve el HTML tal cual: las plantillas ya
  * escapan todo el texto interpolado, por lo que no hay vector de inyección.

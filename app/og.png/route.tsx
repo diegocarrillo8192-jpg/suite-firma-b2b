@@ -15,7 +15,7 @@ export function GET() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#0f172a",
+          backgroundColor: "#04060c",
         }}
       >
         <div
@@ -23,7 +23,7 @@ export function GET() {
             position: "absolute",
             inset: 0,
             background:
-              "radial-gradient(640px 340px at 50% 18%, rgba(99,102,241,0.22), transparent 72%)",
+              "radial-gradient(640px 340px at 50% 18%, rgba(37,99,235,0.28), transparent 72%)",
           }}
         />
         <div
@@ -61,7 +61,7 @@ export function GET() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              background: "linear-gradient(135deg, #6366f1, #2563eb)",
+              background: "linear-gradient(135deg, #3b82f6, #1d4ed8 60%, #0891b2)",
               boxShadow:
                 "0 32px 90px rgba(30,27,75,0.75), inset 0 2px 0 rgba(255,255,255,0.3)",
             }}
@@ -95,7 +95,7 @@ export function GET() {
             }}
           >
             Suite Firma&nbsp;
-            <span style={{ color: "#818cf8" }}>B2B</span>
+            <span style={{ color: "#e8c98a" }}>B2B</span>
           </div>
         </div>
       </div>

@@ -1,23 +1,13 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import SplashScreen from "@/components/SplashScreen";
+import type { Metadata, Viewport } from "next";
+import SplashScreen from "@/components/shell/SplashScreen";
+import { geistMono, geistSans, instrumentSerif } from "./fonts";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
 
 const siteUrl = "https://suite-firma-b2b.vercel.app";
 
-const SITE_TITLE = "Suite Firma B2B — Generador de Firmas y Extractores";
+const SITE_TITLE = "Suite Firma B2B — Firmas de correo y firma digital";
 const SITE_DESCRIPTION =
-  "Generador de firmas de correo HTML, lienzo de firma digital táctil y extractor de foto a PNG transparente. Suite Firma B2B, procesamiento 100% local en tu navegador.";
+  "Crea firmas de correo profesionales para Gmail y Outlook con tu logo, firma a mano con mouse o lápiz digital y convierte firmas en papel a PNG transparente. 100% privado, en tu navegador.";
 
 const OG_IMAGE_URL = `${siteUrl}/og.png`;
 
@@ -26,6 +16,14 @@ export const metadata: Metadata = {
   title: SITE_TITLE,
   description: SITE_DESCRIPTION,
   applicationName: "Suite Firma B2B",
+  keywords: [
+    "firma de correo",
+    "firma email Gmail",
+    "firma Outlook",
+    "firma digital",
+    "firma electrónica PNG",
+    "generador de firmas Panamá",
+  ],
   icons: {
     icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
   },
@@ -33,7 +31,7 @@ export const metadata: Metadata = {
     type: "website",
     url: "/",
     siteName: "Suite Firma B2B",
-    locale: "es_ES",
+    locale: "es_PA",
     title: SITE_TITLE,
     description: SITE_DESCRIPTION,
     images: [
@@ -54,13 +52,25 @@ export const metadata: Metadata = {
   },
 };
 
+export const viewport: Viewport = {
+  themeColor: "#04060c",
+  colorScheme: "dark",
+};
+
+// Oculta la splash antes del primer pintado si ya se mostró en esta sesión.
+const SPLASH_SCRIPT = `try{if(sessionStorage.getItem("sf-splash"))document.documentElement.classList.add("no-splash")}catch(e){}`;
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="es"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
+      className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: SPLASH_SCRIPT }} />
+      </head>
+      <body className="min-h-full">
         <SplashScreen />
         {children}
       </body>

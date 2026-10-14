@@ -1,41 +1,82 @@
-import type { SignatureData } from "./templates";
+import { hexToRgb, safeAccent } from "./colors";
+import { telHref, whatsappHref } from "./phone";
+import { safeHref, type SignatureData } from "./templates";
 
-const esc = (s: string) =>
-  s.replace(/\\/g, "\\\\").replace(/{/g, "\\{").replace(/}/g, "\\}").replace(/\n/g, "\\line ");
+/**
+ * Escapa texto para RTF. Los caracteres no ASCII (tildes, ñ, emojis) se
+ * codifican como \uN? para que Outlook y Word los muestren correctamente.
+ */
+function esc(s: string): string {
+  let out = "";
+  for (const ch of s) {
+    if (ch === "\\" || ch === "{" || ch === "}") {
+      out += `\\${ch}`;
+    } else if (ch === "\n") {
+      out += "\\line ";
+    } else if (ch.charCodeAt(0) < 128 && ch.length === 1) {
+      out += ch;
+    } else {
+      for (let i = 0; i < ch.length; i++) {
+        const unit = ch.charCodeAt(i);
+        out += `\\u${unit > 32767 ? unit - 65536 : unit}?`;
+      }
+    }
+  }
+  return out;
+}
 
 const trim = (s: string) => s.trim();
 
-export function buildSignatureRTF(data: SignatureData): string {
-  const nombre = esc(trim(data.nombre) || "Tu Nombre");
-  const cargo = esc(trim(data.cargo) || "Cargo");
-  const empresa = esc(trim(data.empresa) || "Empresa");
-  const telefono = trim(data.telefono);
-  const email = trim(data.email);
-  const web = trim(data.web);
-  const linkedin = trim(data.linkedin);
-  const instagram = trim(data.instagram);
-  const facebook = trim(data.facebook);
-  const twitter = trim(data.twitter);
+function hyperlink(url: string, text: string): string {
+  if (!url) return esc(text);
+  const safe = url.replace(/\\/g, "\\\\").replace(/"/g, "%22");
+  return `{\\field{\\*\\fldinst{HYPERLINK "${safe}"}}{\\fldrslt{\\cf3\\ul0 ${esc(text)}}}}`;
+}
 
-  const linkLines: string[] = [
-    telefono && `Teléfono: ${telefono}`,
-    email && `Correo: ${email}`,
-    web && `Web: ${web}`,
-    linkedin && `LinkedIn: ${linkedin}`,
-    instagram && `Instagram: ${instagram}`,
-    facebook && `Facebook: ${facebook}`,
-    twitter && `X/Twitter: ${twitter}`,
-  ].filter(Boolean) as string[];
+export function buildSignatureRTF(data: SignatureData, accentHex: string): string {
+  const [ar, ag, ab] = hexToRgb(safeAccent(accentHex));
+  const v = (k: keyof SignatureData) => trim(data[k]);
 
-  // colores fijos: #111827 (nombre), #4b5563 (cargo/empresa), #374151 (contactos)
-  const lines = [
-    `\\f0\\fs22\\b\\cf1 ${nombre}`,
-    `\\f0\\fs20\\cf2 ${cargo}`,
-    `\\f0\\fs20\\cf2 ${empresa}`,
-    ...linkLines.map((l) => `\\fs16\\cf3 ${esc(l)}`),
-  ];
+  const contact: Array<[string, string, string]> = [];
+  if (v("telefono")) contact.push(["Tel.", v("telefono"), telHref(v("telefono"))]);
+  if (v("whatsapp")) contact.push(["WhatsApp", v("whatsapp"), whatsappHref(v("whatsapp"))]);
+  if (v("email")) contact.push(["Email", v("email"), `mailto:${v("email")}`]);
+  if (v("web")) contact.push(["Web", v("web"), safeHref(v("web"))]);
+  if (v("direccion")) contact.push(["Dirección", v("direccion"), ""]);
 
-  const rtf = `{\\rtf1\\ansi\\ansicpg1252\\deff0{\\fonttbl{\\f0 Arial;}}{\\colortbl ;\\red17\\green24\\blue39;\\red75\\green85\\blue99;\\red55\\green65\\blue81;}\\f0\\fs22 ${lines.join("\\line\n")}\\line\n}`;
+  const socials: Array<[string, string]> = (
+    [
+      ["LinkedIn", "linkedin"],
+      ["Instagram", "instagram"],
+      ["Facebook", "facebook"],
+      ["X", "twitter"],
+      ["YouTube", "youtube"],
+      ["TikTok", "tiktok"],
+    ] as const
+  )
+    .filter(([, k]) => v(k))
+    .map(([name, k]) => [name, safeHref(v(k))]);
 
-  return rtf;
+  const role = [v("cargo"), v("departamento")].filter(Boolean).join(" · ");
+  const lines: string[] = [];
+  if (v("nombre")) lines.push(`\\fs28\\b\\cf1 ${esc(v("nombre"))}\\b0`);
+  if (role) lines.push(`\\fs20\\b\\cf4 ${esc(role)}\\b0`);
+  if (v("empresa")) lines.push(`\\fs20\\cf2 ${esc(v("empresa"))}`);
+  if (contact.length) {
+    lines.push(
+      ...contact.map(
+        ([label, value, href]) => `\\fs18\\b\\cf4 ${esc(label)}\\b0\\cf3  ${hyperlink(href, value)}`,
+      ),
+    );
+  }
+  if (socials.length) {
+    lines.push(`\\fs18\\cf3 ${socials.map(([name, href]) => hyperlink(href, name)).join(" \\u183?  ")}`);
+  }
+  if (v("ctaTexto") && v("ctaUrl")) {
+    lines.push(`\\fs18\\b\\cf4 ${hyperlink(safeHref(v("ctaUrl")), `${v("ctaTexto")} →`)}\\b0`);
+  }
+  if (v("disclaimer")) lines.push(`\\fs14\\cf2 ${esc(v("disclaimer"))}`);
+
+  const colors = `{\\colortbl ;\\red17\\green24\\blue39;\\red75\\green85\\blue99;\\red55\\green65\\blue81;\\red${ar}\\green${ag}\\blue${ab};}`;
+  return `{\\rtf1\\ansi\\ansicpg1252\\deff0\\uc1{\\fonttbl{\\f0\\fswiss Arial;}}${colors}\\f0 ${lines.join("\\line\n")}\\line\n}`;
 }

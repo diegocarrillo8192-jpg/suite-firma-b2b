@@ -1,8 +1,12 @@
+import { hexToRgb } from "./colors";
+
 export interface ExtractOptions {
   mode: "auto" | "manual";
   threshold: number;
   contrast: number;
   invert: boolean;
+  /** Compensa sombras y luz desigual de fotos tomadas con el celular. */
+  flatten: boolean;
   ink: string;
   maxDim: number;
 }
@@ -12,6 +16,7 @@ export const defaultOptions: ExtractOptions = {
   threshold: 140,
   contrast: 1.4,
   invert: false,
+  flatten: true,
   ink: "#0f172a",
   maxDim: 2400,
 };
@@ -44,28 +49,38 @@ function otsu(hist: Uint32Array): number {
   return threshold;
 }
 
-function hexToRgb(hex: string): [number, number, number] {
-  const n = parseInt(hex.replace("#", ""), 16);
-  if (Number.isNaN(n)) return [15, 23, 42];
-  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-}
-
-export function readFileAsDataURL(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as string);
-    reader.onerror = () => reject(new Error("Lectura fallida"));
-    reader.readAsDataURL(file);
-  });
-}
-
-export function loadImageFromSrc(src: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error("Carga fallida"));
-    img.src = src;
-  });
+/**
+ * Normaliza la iluminación dividiendo cada píxel entre la media local
+ * (imagen integral). Elimina sombras suaves y degradados del papel.
+ */
+function flattenIllumination(gray: Float32Array, w: number, h: number): void {
+  const r = Math.max(12, Math.round(Math.min(w, h) / 14));
+  const integral = new Float64Array((w + 1) * (h + 1));
+  for (let y = 0; y < h; y++) {
+    let row = 0;
+    for (let x = 0; x < w; x++) {
+      row += gray[y * w + x];
+      integral[(y + 1) * (w + 1) + (x + 1)] = integral[y * (w + 1) + (x + 1)] + row;
+    }
+  }
+  const out = new Float32Array(w * h);
+  for (let y = 0; y < h; y++) {
+    const y0 = Math.max(0, y - r);
+    const y1 = Math.min(h, y + r + 1);
+    for (let x = 0; x < w; x++) {
+      const x0 = Math.max(0, x - r);
+      const x1 = Math.min(w, x + r + 1);
+      const area = (x1 - x0) * (y1 - y0);
+      const s =
+        integral[y1 * (w + 1) + x1] -
+        integral[y0 * (w + 1) + x1] -
+        integral[y1 * (w + 1) + x0] +
+        integral[y0 * (w + 1) + x0];
+      const mean = s / area;
+      out[y * w + x] = mean > 1 ? Math.min(255, (gray[y * w + x] / mean) * 235) : gray[y * w + x];
+    }
+  }
+  gray.set(out);
 }
 
 export function extractInkToCanvas(
@@ -83,16 +98,18 @@ export function extractInkToCanvas(
   srcCtx.drawImage(img, 0, 0, w, h);
   const srcData = srcCtx.getImageData(0, 0, w, h).data;
 
+  const lum = new Float32Array(w * h);
+  for (let i = 0; i < w * h; i++) {
+    lum[i] = 0.299 * srcData[i * 4] + 0.587 * srcData[i * 4 + 1] + 0.114 * srcData[i * 4 + 2];
+  }
+  // Con tinta clara sobre fondo oscuro la normalización no aplica.
+  if (opts.flatten && !opts.invert) flattenIllumination(lum, w, h);
+
   const hist = new Uint32Array(256);
   const gray = new Uint8ClampedArray(w * h);
   const c = opts.contrast;
-
   for (let i = 0; i < w * h; i++) {
-    const r = srcData[i * 4];
-    const g = srcData[i * 4 + 1];
-    const b = srcData[i * 4 + 2];
-    let v = 0.299 * r + 0.587 * g + 0.114 * b;
-    v = (v - 128) * c + 128;
+    let v = (lum[i] - 128) * c + 128;
     v = v < 0 ? 0 : v > 255 ? 255 : v;
     gray[i] = Math.round(v);
     hist[gray[i]]++;
@@ -104,7 +121,7 @@ export function extractInkToCanvas(
   const out = document.createElement("canvas");
   out.width = w;
   out.height = h;
-  const outCtx = out.getContext("2d")!;
+  const outCtx = out.getContext("2d", { willReadFrequently: true })!;
   const outData = outCtx.createImageData(w, h);
   const px = outData.data;
 

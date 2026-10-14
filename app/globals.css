@@ -1,51 +1,295 @@
 @import "tailwindcss";
 
+/* ================================================================== */
+/* Suite Firma B2B · Sistema visual "Panamá 2026"                       */
+/* Noche del Pacífico + azul Canal + oro champán                        */
+/* ================================================================== */
+
 :root {
-  --background: #0f172a;
-  --foreground: #e2e8f0;
+  --background: #04060c;
+  --foreground: #e6e9f2;
+  --surface: rgba(255, 255, 255, 0.035);
+  --surface-strong: rgba(255, 255, 255, 0.06);
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.14);
+  --brand: #3b82f6;
+  --brand-2: #22d3ee;
+  --gold: #e8c98a;
+  --gold-deep: #c9a45c;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-gold-200: #f6e7c4;
+  --color-gold-300: #eed7a3;
+  --color-gold-400: #e8c98a;
+  --color-gold-500: #c9a45c;
+  --color-gold-600: #a78340;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-instrument), Georgia, serif;
 }
 
 html {
   color-scheme: dark;
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  font-feature-settings: "ss01", "cv11";
 }
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(99, 102, 241, 0.35) transparent;
+  scrollbar-color: rgba(148, 163, 184, 0.25) transparent;
 }
 
 ::selection {
-  background: rgba(99, 102, 241, 0.4);
+  background: rgba(59, 130, 246, 0.45);
   color: #fff;
+}
+
+:focus-visible {
+  outline: 2px solid rgba(96, 165, 250, 0.9);
+  outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------ */
+/* Atmósfera: aurora + retícula + grano                                */
+/* ------------------------------------------------------------------ */
+
+.atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.atmosphere::before {
+  content: "";
+  position: absolute;
+  inset: -20% -10% auto -10%;
+  height: 90vh;
+  background:
+    radial-gradient(45% 55% at 18% 18%, rgba(37, 99, 235, 0.28), transparent 70%),
+    radial-gradient(35% 45% at 82% 8%, rgba(34, 211, 238, 0.16), transparent 70%),
+    radial-gradient(30% 35% at 60% 40%, rgba(232, 201, 138, 0.07), transparent 70%);
+  filter: blur(20px);
+  animation: aurora 18s ease-in-out infinite alternate;
+}
+
+.atmosphere::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 75%);
+}
+
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  opacity: 0.06;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@keyframes aurora {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(3%, 2%, 0) scale(1.06);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Superficies                                                         */
+/* ------------------------------------------------------------------ */
+
+/* Tarjeta de cristal con borde degradado de 1px */
+.panel {
+  position: relative;
+  border-radius: 1.25rem;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.02)) padding-box,
+    linear-gradient(160deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04) 40%, rgba(96, 165, 250, 0.12))
+      border-box;
+  border: 1px solid transparent;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.05) inset,
+    0 24px 60px -24px rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.panel-gold {
+  background:
+    linear-gradient(180deg, rgba(232, 201, 138, 0.07), rgba(255, 255, 255, 0.02)) padding-box,
+    linear-gradient(160deg, rgba(232, 201, 138, 0.55), rgba(232, 201, 138, 0.08) 45%, rgba(255, 255, 255, 0.06))
+      border-box;
+}
+
+.text-gradient {
+  background: linear-gradient(100deg, #93c5fd 0%, #67e8f9 45%, #e8c98a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.text-gold {
+  background: linear-gradient(100deg, #f6e7c4, #e8c98a 45%, #c9a45c);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Botón principal */
+.btn-primary {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.875rem;
+  padding: 0.7rem 1.15rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 45%, #0891b2 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.25) inset,
+    0 10px 30px -10px rgba(37, 99, 235, 0.8);
+  transition:
+    transform 0.15s ease,
+    filter 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.btn-primary:hover:not(:disabled) {
+  filter: brightness(1.1);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.3) inset,
+    0 14px 36px -10px rgba(37, 99, 235, 0.95);
+}
+.btn-primary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.btn-gold {
+  color: #1a1305;
+  background: linear-gradient(135deg, #f6e7c4 0%, #e8c98a 45%, #c9a45c 100%);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.5) inset,
+    0 10px 30px -12px rgba(232, 201, 138, 0.7);
+}
+
+/* Botón secundario */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 0.875rem;
+  padding: 0.65rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #cbd5e1;
+  border: 1px solid var(--line-strong);
+  background: rgba(255, 255, 255, 0.03);
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+.btn-ghost:hover:not(:disabled) {
+  color: #fff;
+  border-color: rgba(147, 197, 253, 0.45);
+  background: rgba(59, 130, 246, 0.08);
+}
+
+.btn-primary:disabled,
+.btn-ghost:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+/* Campo de formulario */
+.input-shell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.8rem;
+  border: 1px solid var(--line);
+  background: rgba(2, 6, 18, 0.55);
+  padding: 0.6rem 0.8rem;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+.input-shell:hover {
+  border-color: var(--line-strong);
+}
+.input-shell:focus-within {
+  border-color: rgba(96, 165, 250, 0.7);
+  background: rgba(2, 6, 18, 0.75);
+  box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.14);
+}
+.input-shell[data-invalid="true"] {
+  border-color: rgba(251, 113, 133, 0.6);
 }
 
 /* Fondo de cuadrícula para previsualizar transparencia */
 .bg-checker {
+  background-color: #f8fafc;
   background-image:
-    linear-gradient(45deg, rgba(148, 163, 184, 0.16) 25%, transparent 25%),
-    linear-gradient(-45deg, rgba(148, 163, 184, 0.16) 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, rgba(148, 163, 184, 0.16) 75%),
-    linear-gradient(-45deg, transparent 75%, rgba(148, 163, 184, 0.16) 75%);
-  background-size: 20px 20px;
-  background-position: 0 0, 0 10px, 10px -10px, -10px 0;
+    linear-gradient(45deg, #e2e8f0 25%, transparent 25%),
+    linear-gradient(-45deg, #e2e8f0 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #e2e8f0 75%),
+    linear-gradient(-45deg, transparent 75%, #e2e8f0 75%);
+  background-size: 18px 18px;
+  background-position:
+    0 0,
+    0 9px,
+    9px -9px,
+    -9px 0;
 }
 
-/* Inputs de rango con acento índigo */
+.bg-checker-dark {
+  background-color: #0b1020;
+  background-image:
+    linear-gradient(45deg, rgba(148, 163, 184, 0.1) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(148, 163, 184, 0.1) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(148, 163, 184, 0.1) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(148, 163, 184, 0.1) 75%);
+  background-size: 18px 18px;
+  background-position:
+    0 0,
+    0 9px,
+    9px -9px,
+    -9px 0;
+}
+
+/* Papel del lienzo de firma */
+.paper {
+  background:
+    radial-gradient(120% 90% at 50% 0%, #ffffff 0%, #f8fafc 70%, #f1f5f9 100%);
+}
+
+/* Rango con acento */
 input[type="range"] {
-  accent-color: #6366f1;
+  accent-color: #3b82f6;
   cursor: pointer;
 }
 
@@ -57,26 +301,26 @@ input[type="color"] {
   padding: 0;
   cursor: pointer;
 }
-
 input[type="color"]::-webkit-color-swatch-wrapper {
   padding: 0;
 }
-
 input[type="color"]::-webkit-color-swatch {
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
+  border: none;
+  border-radius: 999px;
 }
-
 input[type="color"]::-moz-color-swatch {
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 8px;
+  border: none;
+  border-radius: 999px;
 }
 
-/* Animación sutil de entrada */
+/* ------------------------------------------------------------------ */
+/* Animaciones                                                         */
+/* ------------------------------------------------------------------ */
+
 @keyframes fade-up {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -85,10 +329,56 @@ input[type="color"]::-moz-color-swatch {
 }
 
 .animate-fade-up {
-  animation: fade-up 0.35s ease-out both;
+  animation: fade-up 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-/* Splash screen: entrada, pulso y palabra */
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-toast {
+  animation: toast-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes shimmer {
+  from {
+    background-position: -200% 0;
+  }
+  to {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03));
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+}
+
+/* Trazo de firma animado del hero */
+@keyframes draw-signature {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.signature-draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: draw-signature 2.4s cubic-bezier(0.65, 0, 0.35, 1) 0.3s forwards;
+}
+
+/* Splash: entrada, pulso y palabra */
 @keyframes splash-pop {
   from {
     opacity: 0;
@@ -104,22 +394,20 @@ input[type="color"]::-moz-color-swatch {
   0%,
   100% {
     box-shadow:
-      0 0 0 0 rgba(99, 102, 241, 0.45),
-      0 18px 50px rgba(30, 27, 75, 0.55);
-    transform: scale(1);
+      0 0 0 0 rgba(59, 130, 246, 0.45),
+      0 18px 50px rgba(2, 6, 23, 0.6);
   }
   50% {
     box-shadow:
-      0 0 0 16px rgba(99, 102, 241, 0.08),
-      0 18px 70px rgba(79, 70, 229, 0.5);
-    transform: scale(1.05);
+      0 0 0 18px rgba(59, 130, 246, 0),
+      0 18px 70px rgba(37, 99, 235, 0.45);
   }
 }
 
 .splash-logo {
   animation:
-    splash-pop 0.6s cubic-bezier(0.22, 1, 0.36, 1) both,
-    splash-pulse 1.6s ease-in-out 0.6s infinite;
+    splash-pop 0.55s cubic-bezier(0.22, 1, 0.36, 1) both,
+    splash-pulse 1.6s ease-in-out 0.55s infinite;
 }
 
 @keyframes splash-word {
@@ -134,7 +422,32 @@ input[type="color"]::-moz-color-swatch {
 }
 
 .splash-word {
-  animation: splash-word 0.5s ease-out 0.35s both;
+  animation: splash-word 0.5s ease-out 0.25s both;
 }
 
+/* La splash solo se muestra una vez por sesión (ver script en layout). */
+.no-splash .splash-root {
+  display: none;
+}
 
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .signature-draw {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Fila de pestañas desplazable sin barra visible */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
